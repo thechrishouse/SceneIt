@@ -4,30 +4,37 @@ import ShowCard from "../components/ShowCard";
 import Ratings from '../components/Ratings';
 import FavoriteHeart from "../components/FavoriteHeart";
 
+
+/// The TMDB API key stored in the .env file
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
 const ShowPage = () => {
+  /// Retrieves the show ID from the current route.
   const { id } = useParams();
+
+  /// Stores the show details, similar shows, and loading status
   const [details, setDetails] = useState(null);
   const [similar, setSimilar] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ⭐ Local states
+  ///  Local states for the user interactions attached to each profile
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [watched, setWatched] = useState(false);
   const [listed, setListed] = useState(false);
 
   useEffect(() => {
+    /// Fetches show details and recommendations when the route ID changes
     const fetchDetails = async () => {
       try {
+        /// Pulls the selected show's details from TMDB.
         const res = await fetch(
           `https://api.themoviedb.org/3/tv/${id}?api_key=${API_KEY}&language=en-US`
         );
         const data = await res.json();
         setDetails(data);
 
-        // fetch similar shows
+        /// fetch similar shows to display as recommendations
         const simRes = await fetch(
           `https://api.themoviedb.org/3/tv/${id}/similar?api_key=${API_KEY}&language=en-US&page=1`
         );
@@ -36,19 +43,21 @@ const ShowPage = () => {
       } catch (err) {
         console.error("Error fetching showId details:", err);
       } finally {
+        /// Removes the loading state after the request finishes
         setLoading(false);
       }
     };
     fetchDetails();
   }, [id]);
 
+  /// Displays feedback while the data is loading or renders message if the show is not found.
   if (loading) return <p className="text-white p-6">Loading...</p>;
   if (!details) return <p className="text-white p-6">show not found</p>;
 
   return (
     <div className="min-h-screen text-white my-32 p-6">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Hero Poster */}
+        {/* Displays the show;s poster, with a fallback image when no image is available */}
         <div>
           {details.poster_path ? (
             <img
@@ -63,11 +72,11 @@ const ShowPage = () => {
           )}
         </div>
 
-        {/* show Details */}
+        {/* Shows title, ratings, release info, and media overview */}
         <div className="md:col-span-2">
           <h1 className="text-4xl font-bold mb-2">{details.name}</h1>
 
-          {/* TMDB Rating */}
+          {/* TMDB Rating and vote count */}
           <div className="flex items-center space-x-2 mb-2">
             <span className="text-highlight text-xl">⭐</span>
             <span className="text-lg font-semibold">
@@ -91,15 +100,15 @@ const ShowPage = () => {
 
           <p className="text-white leading-relaxed">{details.overview}</p>
 
-          {/* User Rating (⭐ out of 5) */}
+          {/* Renders the user rating (⭐ out of 5) component for the selected show*/}
           <div className="mt-6">
             <p className="mb-2 font-semibold">Rate?</p>
             <Ratings showId={details.id}/>
           </div>
 
-          {/* Watched & Listed Toggles */}
+          {/* Allow users to toggle their watched and listed selections */}
           <div className="mt-6 flex space-x-6">
-            {/* Watched */}
+            {/* Watched status toggle */}
             <div className="flex items-center gap-1">
               <span
                 onClick={() => setWatched(!watched)}
@@ -116,7 +125,7 @@ const ShowPage = () => {
               </span>
             </div>
 
-            {/* Listed */}
+            {/* Listed status toggle */}
             <div className="flex items-center gap-1">
               <span
                 onClick={() => setListed(!listed)}
@@ -136,7 +145,7 @@ const ShowPage = () => {
         </div>
       </div>
 
-      {/* Similar Shows Section */}
+      {/* Displays a grid of recommended shows (10max) using reusable ShowCard components. */}
       <div className="max-w-6xl mx-auto mt-10">
         <h2 className="text-2xl font-bold mb-4">More Shows Like {details.name} </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
